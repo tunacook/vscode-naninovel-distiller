@@ -64,16 +64,14 @@ class NaninovelStatsProvider implements vscode.TreeDataProvider<StatItem> {
                     continue;
                 }
 
-                // rubyタグを取り除いて
-                const trimmedLine2 = trimRuby(trimmedLine);
-            
-                const aaa = trimBrTag(
-                            trimmedLine2
-                        );
-                        console.log("aaa:", aaa);
-
-
-                // console.log("text:",trimmedLine2);
+                // タグを取り除く
+                // fg/br/ruby
+                const trimmedLine2 =
+                    trimFgTag(
+                        trimBrTag(
+                            trimRuby(trimmedLine)
+                        )
+                    );
 
                 // --- ここからカウントロジック ---
                 // 形式が "話者: セリフ" かどうかを判定
