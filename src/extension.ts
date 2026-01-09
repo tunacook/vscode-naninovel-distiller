@@ -1,26 +1,65 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
+    // 1. 統計データの提供元（Provider）をインスタンス化
+    const statsProvider = new NaniStatsProvider();
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "vscode-naninovel-distiller" is now active!');
+    // 2. サイドバーのビューにProviderを登録
+    vscode.window.registerTreeDataProvider('naniStatsView', statsProvider);
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	const disposable = vscode.commands.registerCommand('vscode-naninovel-distiller.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from vscode-naninovel-distiller!');
-	});
+    // 3. ファイルを保存したときに統計を更新する設定
+    context.subscriptions.push(
+        vscode.workspace.onDidSaveTextDocument(() => statsProvider.refresh())
+    );
 
-	context.subscriptions.push(disposable);
+    // 4. PDF出力コマンドの実装
+    context.subscriptions.push(
+        vscode.commands.registerCommand('nani-distiller.exportPdf', () => {
+            vscode.window.showInformationMessage('PDF出力機能はここに実装します');
+        })
+    );
 }
 
-// This method is called when your extension is deactivated
-export function deactivate() {}
+// ツリーに表示する項目の定義
+class StatItem extends vscode.TreeItem {
+    constructor(label: string, value: string, iconId?: string) {
+        super(label, vscode.TreeItemCollapsibleState.None);
+        this.description = value;
+        if (iconId) {
+            this.iconPath = new vscode.ThemeIcon(iconId);
+        }
+    }
+}
+
+// サイドバーにデータを流し込むクラス
+class NaniStatsProvider implements vscode.TreeDataProvider<StatItem> {
+    private _onDidChangeTreeData = new vscode.EventEmitter<StatItem | undefined>();
+    readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
+
+    refresh(): void {
+        this._onDidChangeTreeData.fire(undefined);
+    }
+
+    getTreeItem(element: StatItem): vscode.TreeItem {
+        return element;
+    }
+
+    async getChildren(): Promise<StatItem[]> {
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) {
+            return [new StatItem("エディタが開かれていません", "", "info")];
+        }
+
+        const text = editor.document.getText();
+        
+        // --- ここであなたのライブラリを呼び出すイメージ ---
+        // 例: const result = yourLibrary.analyze(text);
+        // 現在はダミー数値を表示します
+        
+        return [
+            new StatItem("セリフ（純文字数）", "1,234 文字", "comment-discussion"),
+            new StatItem("話者名（ユニーク）", "56 文字", "person"),
+            new StatItem("除外（スクリプト）", "89 行", "code")
+        ];
+    }
+}

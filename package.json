@@ -12,12 +12,23 @@
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
-    "commands": [
-      {
-        "command": "vscode-naninovel-distiller.helloWorld",
-        "title": "Hello World"
-      }
-    ]
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "nani-distiller-sidebar",
+          "title": "Nani Distiller",
+          "icon": "$(search)"
+        }
+      ]
+    },
+    "views": {
+      "nani-distiller-sidebar": [
+        {
+          "id": "naniStatsView",
+          "name": "Scenario Statistics"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "pnpm run package",
