@@ -12,7 +12,7 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 // --- 型定義 ---
-type ItemType = 'folder' | 'file' | 'detail' | 'speakerName';
+type ItemType = 'root_summary' | 'folder' | 'file' | 'speaker_group' | 'speaker_name';
 
 type Stats = {
     body: number;
@@ -20,49 +20,33 @@ type Stats = {
     speakers: Set<string>;
 };
 
-type FlatStats = {
-    body: number;
-    words: number;
-    speakerChars: number;
-    speakerCount: number;
-    speakerList: string[]; // 詳細表示用
-};
-
 class StatItem extends vscode.TreeItem {
     constructor(
         public readonly label: string,
         public readonly resourceUri?: vscode.Uri,
         public readonly collapsibleState: vscode.TreeItemCollapsibleState = vscode.TreeItemCollapsibleState.None,
-        public readonly stats?: FlatStats,
-        public readonly type: ItemType = 'file'
+        public readonly type: ItemType = 'file',
+        public readonly statsData?: { body: number; words: number; speakerList: string[] }
     ) {
         super(label, collapsibleState);
         
-        if (stats) {
+        if (statsData) {
             if (type === 'file' || type === 'folder') {
-                this.description = `${stats.body.toLocaleString()} characters / ${stats.words.toLocaleString()} words`;
-                this.tooltip = `純文字数: ${stats.body}\nワード数: ${stats.words}\nユニーク話者数: ${stats.speakerCount} 名`;
-            } else if (type === 'detail') {
-                if (label.includes("話者数")) {
-                    this.description = `${stats.speakerCount} 名`;
-                } else if (label.includes("ワード数")) {
-                    this.description = `${stats.words.toLocaleString()} words`;
-                } else {
-                    this.description = `${stats.body.toLocaleString()} characters`;
-                }
+                this.description = `${statsData.body.toLocaleString()} characters / ${statsData.words.toLocaleString()} words`;
+                this.tooltip = `文字数: ${statsData.body}\nワード数: ${statsData.words}\n話者数: ${statsData.speakerList.length}名`;
             }
         }
 
         // アイコン設定
-        if (type === 'folder') {
-            this.iconPath = vscode.ThemeIcon.Folder;
-        } else if (type === 'file') {
-            this.iconPath = new vscode.ThemeIcon('file-text');
-        } else if (type === 'speakerName') {
-            this.iconPath = new vscode.ThemeIcon('account'); // キャラクター個別のアイコン
-        } else {
-            const icon = label.includes("セリフ") ? "comment" : (label.includes("ワード") ? "word-file" : "organization");
-            this.iconPath = new vscode.ThemeIcon(icon);
+        switch (type) {
+            case 'folder': this.iconPath = vscode.ThemeIcon.Folder; break;
+            case 'file': this.iconPath = new vscode.ThemeIcon('file-text'); break;
+            case 'speaker_group': 
+                this.iconPath = new vscode.ThemeIcon('organization');
+                this.description = statsData ? `${statsData.speakerList.length} 名` : "";
+                break;
+            case 'speaker_name': this.iconPath = new vscode.ThemeIcon('account'); break;
+            case 'root_summary': this.iconPath = new vscode.ThemeIcon('info'); break;
         }
     }
 }
@@ -71,72 +55,75 @@ class NaninovelStatsProvider implements vscode.TreeDataProvider<StatItem> {
     private _onDidChangeTreeData = new vscode.EventEmitter<StatItem | undefined | null | void>();
     readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
-    refresh(): void {
-        this._onDidChangeTreeData.fire();
-    }
-
-    getTreeItem(element: StatItem): vscode.TreeItem {
-        return element;
-    }
+    refresh(): void { this._onDidChangeTreeData.fire(); }
+    getTreeItem(element: StatItem): vscode.TreeItem { return element; }
 
     async getChildren(element?: StatItem): Promise<StatItem[]> {
         const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri;
-        if (!workspaceRoot) return [];
+        if (!workspaceRoot) {return [];}
 
-        // 1. 「話者数（ユニーク）」の下にキャラクター名一覧を表示
-        if (element && element.type === 'detail' && element.label.includes("話者数") && element.stats) {
-            return element.stats.speakerList.sort().map(name => 
-                new StatItem(name, undefined, vscode.TreeItemCollapsibleState.None, undefined, 'speakerName')
-            );
-        }
+        // 1. ルート表示（プロジェクト全体の解析）
+        if (!element) {
+            const config = vscode.workspace.getConfiguration('naninovelDistiller');
+            const excludeDirs = config.get<string[]>('excludeDirectories') || [];
+            const allStats = await this.getDeepStats(workspaceRoot, excludeDirs);
+            const flat = this.flatten(allStats);
 
-        // 2. ファイルの下に内訳を表示
-        if (element && element.type === 'file' && element.stats) {
             return [
-                new StatItem("セリフ純文字数", undefined, vscode.TreeItemCollapsibleState.None, element.stats, 'detail'),
-                new StatItem("ワード数", undefined, vscode.TreeItemCollapsibleState.None, element.stats, 'detail'),
-                // 話者数は展開可能(Collapsed)にする
-                new StatItem("話者数（ユニーク）", undefined, vscode.TreeItemCollapsibleState.Collapsed, element.stats, 'detail')
+                // プロジェクト全体の話者リストを独立したトップ項目として出す
+                new StatItem("プロジェクト全話者リスト", undefined, vscode.TreeItemCollapsibleState.Collapsed, 'speaker_group', flat),
+                // その下にディレクトリ構造を並べる
+                ...(await this.getFolderItems(workspaceRoot, excludeDirs))
             ];
         }
 
-        // 3. 通常のディレクトリ走査
-        const folderUri = element ? element.resourceUri : workspaceRoot;
-        if (!folderUri) return [];
+        // 2. 話者リスト項目の展開
+        if (element.type === 'speaker_group' && element.statsData) {
+            return element.statsData.speakerList.sort().map(name => 
+                new StatItem(name, undefined, vscode.TreeItemCollapsibleState.None, 'speaker_name')
+            );
+        }
 
-        try {
+        // 3. フォルダ項目の展開
+        if (element.type === 'folder' && element.resourceUri) {
             const config = vscode.workspace.getConfiguration('naninovelDistiller');
             const excludeDirs = config.get<string[]>('excludeDirectories') || [];
+            return this.getFolderItems(element.resourceUri, excludeDirs);
+        }
 
-            const children = await vscode.workspace.fs.readDirectory(folderUri);
-            const items: StatItem[] = [];
+        // 4. ファイル項目の展開（内訳のみ）
+        if (element.type === 'file' && element.statsData) {
+            return [
+                new StatItem(`文字数: ${element.statsData.body.toLocaleString()}`, undefined, vscode.TreeItemCollapsibleState.None, 'root_summary'),
+                new StatItem(`ワード数: ${element.statsData.words.toLocaleString()}`, undefined, vscode.TreeItemCollapsibleState.None, 'root_summary'),
+                new StatItem("登場話者", undefined, vscode.TreeItemCollapsibleState.Collapsed, 'speaker_group', element.statsData)
+            ];
+        }
 
-            for (const [name, type] of children) {
-                if (type === vscode.FileType.Directory && excludeDirs.includes(name)) continue;
-                const uri = vscode.Uri.joinPath(folderUri, name);
-
-                if (type === vscode.FileType.Directory) {
-                    const stats = await this.getDeepStats(uri, excludeDirs);
-                    items.push(new StatItem(name, uri, vscode.TreeItemCollapsibleState.Collapsed, this.flattenStats(stats), 'folder'));
-                } else if (name.endsWith('.nani')) {
-                    const stats = await this.countFileStats(uri);
-                    items.push(new StatItem(name, uri, vscode.TreeItemCollapsibleState.Collapsed, this.flattenStats(stats), 'file'));
-                }
-            }
-            return items.sort((a, b) => (b.collapsibleState - a.collapsibleState) || a.label.localeCompare(b.label));
-        } catch { return []; }
+        return [];
     }
 
-    private flattenStats(s: Stats): FlatStats {
-        let speakerChars = 0;
-        s.speakers.forEach(name => speakerChars += name.length);
-        return {
-            body: s.body,
-            words: s.words,
-            speakerChars: speakerChars,
-            speakerCount: s.speakers.size,
-            speakerList: Array.from(s.speakers) // Setを配列に変換
-        };
+    // 特定のディレクトリ内の中身（フォルダとファイル）を生成する共通処理
+    private async getFolderItems(uri: vscode.Uri, excludeDirs: string[]): Promise<StatItem[]> {
+        const children = await vscode.workspace.fs.readDirectory(uri);
+        const items: StatItem[] = [];
+
+        for (const [name, type] of children) {
+            const childUri = vscode.Uri.joinPath(uri, name);
+            if (type === vscode.FileType.Directory) {
+                if (excludeDirs.includes(name)) {continue;}
+                const stats = await this.getDeepStats(childUri, excludeDirs);
+                items.push(new StatItem(name, childUri, vscode.TreeItemCollapsibleState.Collapsed, 'folder', this.flatten(stats)));
+            } else if (name.endsWith('.nani')) {
+                const stats = await this.countFileStats(childUri);
+                items.push(new StatItem(name, childUri, vscode.TreeItemCollapsibleState.Collapsed, 'file', this.flatten(stats)));
+            }
+        }
+        return items.sort((a, b) => (b.collapsibleState - a.collapsibleState) || a.label.localeCompare(b.label));
+    }
+
+    private flatten(s: Stats) {
+        return { body: s.body, words: s.words, speakerList: Array.from(s.speakers) };
     }
 
     private async getDeepStats(folderUri: vscode.Uri, excludeDirs: string[]): Promise<Stats> {
@@ -146,7 +133,7 @@ class NaninovelStatsProvider implements vscode.TreeDataProvider<StatItem> {
         for (const [name, type] of children) {
             const uri = vscode.Uri.joinPath(folderUri, name);
             if (type === vscode.FileType.Directory) {
-                if (excludeDirs.includes(name)) continue;
+                if (excludeDirs.includes(name)) {continue;}
                 const sub = await this.getDeepStats(uri, excludeDirs);
                 body += sub.body; words += sub.words;
                 sub.speakers.forEach(v => speakers.add(v));
@@ -167,11 +154,14 @@ class NaninovelStatsProvider implements vscode.TreeDataProvider<StatItem> {
             const speakers = new Set<string>();
             for (const line of text.split(/\r?\n/)) {
                 const t = line.trim();
-                if (!t || isSkipNaninovelSyntax(t)) continue;
+                if (!t || isSkipNaninovelSyntax(t)) {continue;}
                 const clean = trimFgTag(trimBrTag(trimRuby(t)));
                 const match = clean.match(/^([^:\s]+)\s*:\s*(.*)$/);
                 const content = match ? match[2] : clean;
-                if (match) speakers.add(match[1].trim());
+                if (match) {
+                    const n = match[1].trim();
+                    if (n) {speakers.add(n);}
+                }
                 body += content.length;
                 words += content.split(/[\s\p{P}]+/u).filter(w => w.length > 0).length;
             }
