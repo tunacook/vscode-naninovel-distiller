@@ -2,8 +2,8 @@ import * as vscode from 'vscode';
 import { isSkipNaninovelSyntax } from 'naninovel-script-spec';
 
 export function activate(context: vscode.ExtensionContext) {
-    const statsProvider = new NaniStatsProvider();
-    vscode.window.registerTreeDataProvider('naniStatsView', statsProvider);
+    const statsProvider = new NaninovelStatsProvider();
+    vscode.window.registerTreeDataProvider('naninovelStatsView', statsProvider);
 
     // 追加：エディタの切り替えや選択変更を監視
     context.subscriptions.push(
@@ -29,7 +29,7 @@ class StatItem extends vscode.TreeItem {
 }
 
 // サイドバーにデータを流し込むクラス
-class NaniStatsProvider implements vscode.TreeDataProvider<StatItem> {
+class NaninovelStatsProvider implements vscode.TreeDataProvider<StatItem> {
     private _onDidChangeTreeData = new vscode.EventEmitter<StatItem | undefined>();
     readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 

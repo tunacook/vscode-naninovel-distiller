@@ -24,7 +24,7 @@
     "views": {
       "nani-distiller-sidebar": [
         {
-          "id": "naniStatsView",
+          "id": "naninovelStatsView",
           "name": "Scenario Statistics"
         }
       ]
