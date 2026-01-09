@@ -17,76 +17,105 @@ export function activate(context: vscode.ExtensionContext) {
     );
 }
 
-// ツリーに表示する項目の定義
 class StatItem extends vscode.TreeItem {
-    constructor(label: string, value: string, iconId?: string) {
-        super(label, vscode.TreeItemCollapsibleState.None);
-        this.description = value;
-        if (iconId) {
-            this.iconPath = new vscode.ThemeIcon(iconId);
+    constructor(
+        public readonly label: string,
+        public readonly resourceUri?: vscode.Uri, // ファイルパスを保持
+        public readonly collapsibleState: vscode.TreeItemCollapsibleState = vscode.TreeItemCollapsibleState.None,
+        public readonly stats?: { body: number; speaker: number }
+    ) {
+        super(label, collapsibleState);
+        
+        if (stats) {
+            this.description = `${stats.body + stats.speaker} 文字`;
+            this.tooltip = `セリフ: ${stats.body} / 話者: ${stats.speaker}`;
+        }
+
+        // フォルダならフォルダアイコン、ファイルならファイルアイコン
+        if (collapsibleState === vscode.TreeItemCollapsibleState.Collapsed) {
+            this.iconPath = vscode.ThemeIcon.Folder;
+        } else {
+            this.iconPath = vscode.ThemeIcon.File;
+            this.contextValue = 'file'; // 右クリックメニューなどの判定用
         }
     }
 }
 
-// サイドバーにデータを流し込むクラス
 class NaninovelStatsProvider implements vscode.TreeDataProvider<StatItem> {
-    private _onDidChangeTreeData = new vscode.EventEmitter<StatItem | undefined>();
+    // イベント通知用のエミッター（refreshメソッドで使用）
+    private _onDidChangeTreeData = new vscode.EventEmitter<StatItem | undefined | null | void>();
     readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
+    // 表示を更新するためのメソッド
     refresh(): void {
-        this._onDidChangeTreeData.fire(undefined);
+        this._onDidChangeTreeData.fire();
     }
 
+    // 各アイテムの見た目を決定する
     getTreeItem(element: StatItem): vscode.TreeItem {
-        return element;
+        return element; // StatItem自体がTreeItemを継承しているのでそのまま返す
     }
 
-    async getChildren(): Promise<StatItem[]> {
+    // ツリーの階層構造を決定する
+    async getChildren(element?: StatItem): Promise<StatItem[]> {
+        const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri;
+        if (!workspaceRoot) { return []; }
+
+        const folderUri = element ? element.resourceUri : workspaceRoot;
+        if (!folderUri) { return []; }
+
         try {
-            const editor = vscode.window.activeTextEditor;
-            if (!editor) return [new StatItem("エディタが開かれていません", "", "info")];
+            const children = await vscode.workspace.fs.readDirectory(folderUri);
+            const items: StatItem[] = [];
 
-            const text = editor.document.getText();
-            const lines = text.split(/\r?\n/);
+            for (const [name, type] of children) {
+                const uri = vscode.Uri.joinPath(folderUri, name);
 
-            let bodyCharCount = 0; // セリフ・地の文
-            let uniqueSpeakers = new Set<string>(); // 話者名の集合
-
-            for (const line of lines) {
-                const trimmed = line.trim();
-                if (!trimmed || isSkipNaninovelSyntax(trimmed)) continue;
-
-                // タグ除去（ルビやFGタグなど、中身だけを残す）
-                const cleanLine = trimFgTag(trimBrTag(trimRuby(trimmed)));
-
-                // 話者とセリフの分離
-                // Naninovelの「話者:」は行頭から始まり、その後にセリフが続く形式
-                // 例: "Yuko: こんにちは" -> speaker: "Yuko", content: "こんにちは"
-                const genericTextMatch = cleanLine.match(/^([^:\s]+)\s*:\s*(.*)$/);
-
-                if (genericTextMatch) {
-                    const speaker = genericTextMatch[1];
-                    const content = genericTextMatch[2];
-
-                    uniqueSpeakers.add(speaker);
-                    bodyCharCount += content.length;
-                } else {
-                    // 話者がいない場合（地の文など）
-                    // コマンド（@から始まる行）は isSkipNaninovelSyntax で除外済みのはず
-                    bodyCharCount += cleanLine.length;
+                if (type === vscode.FileType.Directory) {
+                    items.push(new StatItem(name, uri, vscode.TreeItemCollapsibleState.Collapsed));
+                } else if (name.endsWith('.nani')) {
+                    const stats = await this.countFileStats(uri);
+                    items.push(new StatItem(name, uri, vscode.TreeItemCollapsibleState.None, stats));
                 }
             }
 
-            // ユニーク話者名の合計
-            const totalSpeakerNameChars = Array.from(uniqueSpeakers).join('').length;
-
-            return [
-                new StatItem("セリフ・地の文", `${bodyCharCount} 文字`, "comment-discussion"),
-                new StatItem("話者名 (重複なし)", `${totalSpeakerNameChars} 文字`, "person"),
-                new StatItem("合計 (シート換算用)", `${bodyCharCount + totalSpeakerNameChars} 文字`, "layers")
-            ];
+            return items.sort((a, b) => (b.collapsibleState - a.collapsibleState) || a.label.localeCompare(b.label));
         } catch (err) {
-            return [new StatItem("解析エラー発生", String(err), "error")];
+            console.error("Failed to read directory:", err);
+            return [];
+        }
+    }
+
+    // カウントロジック
+    private async countFileStats(uri: vscode.Uri): Promise<{ body: number; speaker: number }> {
+        try {
+            const uint8Array = await vscode.workspace.fs.readFile(uri);
+            const text = new TextDecoder().decode(uint8Array);
+            
+            let bodyCharCount = 0;
+            let speakerNameCount = 0;
+            const uniqueSpeakers = new Set<string>();
+
+            const lines = text.split(/\r?\n/);
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed || isSkipNaninovelSyntax(trimmed)) { continue; }
+
+                const cleanLine = trimFgTag(trimBrTag(trimRuby(trimmed)));
+                const match = cleanLine.match(/^([^:\s]+)\s*:\s*(.*)$/);
+                
+                if (match) {
+                    uniqueSpeakers.add(match[1]);
+                    bodyCharCount += match[2].length;
+                } else {
+                    bodyCharCount += cleanLine.length;
+                }
+            }
+            
+            uniqueSpeakers.forEach(name => speakerNameCount += name.length);
+            return { body: bodyCharCount, speaker: speakerNameCount };
+        } catch (e) {
+            return { body: 0, speaker: 0 };
         }
     }
 }
