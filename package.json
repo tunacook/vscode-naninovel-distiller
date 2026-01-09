@@ -13,8 +13,19 @@
       "properties": {
         "naninovelDistiller.excludeDirectories": {
           "type": "array",
-          "default": ["node_modules", ".git", "Resources", "ThirdParty", "Editor", "Plugins"],
-          "description": "統計スキャンから除外するディレクトリ名のリストです。"
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "node_modules",
+            ".git",
+            ".github",
+            ".prh",
+            ".vscode",
+            "docs",
+            "staging-test"
+          ],
+          "description": "統計スキャンから除外するディレクトリ名のリスト"
         }
       }
     },
