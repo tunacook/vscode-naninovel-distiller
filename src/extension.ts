@@ -1,21 +1,18 @@
 import * as vscode from 'vscode';
+import { isSkipNaninovelSyntax } from 'naninovel-script-spec';
 
 export function activate(context: vscode.ExtensionContext) {
-    // 1. 統計データの提供元（Provider）をインスタンス化
     const statsProvider = new NaniStatsProvider();
-
-    // 2. サイドバーのビューにProviderを登録
     vscode.window.registerTreeDataProvider('naniStatsView', statsProvider);
 
-    // 3. ファイルを保存したときに統計を更新する設定
+    // 追加：エディタの切り替えや選択変更を監視
     context.subscriptions.push(
-        vscode.workspace.onDidSaveTextDocument(() => statsProvider.refresh())
-    );
-
-    // 4. PDF出力コマンドの実装
-    context.subscriptions.push(
-        vscode.commands.registerCommand('nani-distiller.exportPdf', () => {
-            vscode.window.showInformationMessage('PDF出力機能はここに実装します');
+        vscode.window.onDidChangeActiveTextEditor(() => statsProvider.refresh()),
+        vscode.workspace.onDidChangeTextDocument(e => {
+            // 現在開いているドキュメントの変更ならリフレッシュ
+            if (e.document === vscode.window.activeTextEditor?.document) {
+                statsProvider.refresh();
+            }
         })
     );
 }
@@ -45,21 +42,58 @@ class NaniStatsProvider implements vscode.TreeDataProvider<StatItem> {
     }
 
     async getChildren(): Promise<StatItem[]> {
-        const editor = vscode.window.activeTextEditor;
-        if (!editor) {
-            return [new StatItem("エディタが開かれていません", "", "info")];
-        }
+        try {
+            const editor = vscode.window.activeTextEditor;
+            if (!editor) {
+                return [new StatItem("エディタが開かれていません", "", "info")];
+            }
 
-        const text = editor.document.getText();
-        
-        // --- ここであなたのライブラリを呼び出すイメージ ---
-        // 例: const result = yourLibrary.analyze(text);
-        // 現在はダミー数値を表示します
-        
-        return [
-            new StatItem("セリフ（純文字数）", "1,234 文字", "comment-discussion"),
-            new StatItem("話者名（ユニーク）", "56 文字", "person"),
-            new StatItem("除外（スクリプト）", "89 行", "code")
-        ];
+            const text = editor.document.getText();
+            const lines = text.split(/\r?\n/); // テキストを行ごとに分割
+
+            let totalLength = 0;
+            let speakerUniqueChars = new Set<string>(); // 重複除外用
+
+            for (const line of lines) {
+                const trimmedLine = line.trim();
+                if (!trimmedLine) {continue;} // 空行はスキップ
+
+                // 1行ずつ判定ライブラリに渡す
+                if (isSkipNaninovelSyntax(trimmedLine)) {
+                    // スキップ対象（コマンドやコメント）
+                    continue;
+                }
+
+                console.log("text:",line);
+
+                // --- ここからカウントロジック ---
+                // 形式が "話者: セリフ" かどうかを判定
+                if (trimmedLine.includes(':')) {
+                    const [speaker, ...contentParts] = trimmedLine.split(':');
+                    const content = contentParts.join(':').trim();
+
+                    // 話者名をセットに追加（重複は自動で無視される）
+                    speakerUniqueChars.add(speaker.trim());
+                    // セリフ内容をカウント
+                    totalLength += content.length;
+                } else {
+                    // 話者がいない地の文などの場合
+                    totalLength += trimmedLine.length;
+                }
+            }
+
+            // ユニークな話者名の合計文字数を計算
+            let totalSpeakerLength = 0;
+            speakerUniqueChars.forEach(name => totalSpeakerLength += name.length);
+
+            return [
+                new StatItem("セリフ純文字数", `${totalLength} 文字`, "comment-discussion"),
+                new StatItem("話者名（重複除外）", `${totalSpeakerLength} 文字`, "person"),
+                new StatItem("合計見積文字数", `${totalLength + totalSpeakerLength} 文字`, "layers")
+            ];
+        } catch (err) {
+            console.error("Critical error in getChildren:", err);
+            return [new StatItem("解析エラー発生", String(err), "error")];
+        }
     }
 }
