@@ -44,62 +44,48 @@ class NaninovelStatsProvider implements vscode.TreeDataProvider<StatItem> {
     async getChildren(): Promise<StatItem[]> {
         try {
             const editor = vscode.window.activeTextEditor;
-            if (!editor) {
-                return [new StatItem("エディタが開かれていません", "", "info")];
-            }
+            if (!editor) return [new StatItem("エディタが開かれていません", "", "info")];
 
             const text = editor.document.getText();
-            const lines = text.split(/\r?\n/); // テキストを行ごとに分割
+            const lines = text.split(/\r?\n/);
 
-            let totalLength = 0;
-            let speakerUniqueChars = new Set<string>(); // 重複除外用
+            let bodyCharCount = 0; // セリフ・地の文
+            let uniqueSpeakers = new Set<string>(); // 話者名の集合
 
             for (const line of lines) {
-                const trimmedLine = line.trim();
-                if (!trimmedLine) {continue;} // 空行はスキップ
+                const trimmed = line.trim();
+                if (!trimmed || isSkipNaninovelSyntax(trimmed)) continue;
 
-                // 1行ずつ判定ライブラリに渡す
-                if (isSkipNaninovelSyntax(trimmedLine)) {
-                    // スキップ対象（コマンドやコメント）
-                    continue;
-                }
+                // 1. タグ除去（ルビやFGタグなど、中身だけを残す）
+                let cleanLine = trimFgTag(trimBrTag(trimRuby(trimmed)));
 
-                // タグを取り除く
-                // fg/br/ruby
-                const trimmedLine2 =
-                    trimFgTag(
-                        trimBrTag(
-                            trimRuby(trimmedLine)
-                        )
-                    );
+                // 2. 話者とセリフの分離
+                // Naninovelの「話者:」は行頭から始まり、その後にセリフが続く形式
+                // 例: "Yuko: こんにちは" -> speaker: "Yuko", content: "こんにちは"
+                const genericTextMatch = cleanLine.match(/^([^:\s]+)\s*:\s*(.*)$/);
 
-                // --- ここからカウントロジック ---
-                // 形式が "話者: セリフ" かどうかを判定
-                if (trimmedLine.includes(':')) {
-                    const [speaker, ...contentParts] = trimmedLine.split(':');
-                    const content = contentParts.join(':').trim();
+                if (genericTextMatch) {
+                    const speaker = genericTextMatch[1];
+                    const content = genericTextMatch[2];
 
-                    // 話者名をセットに追加（重複は自動で無視される）
-                    speakerUniqueChars.add(speaker.trim());
-                    // セリフ内容をカウント
-                    totalLength += content.length;
+                    uniqueSpeakers.add(speaker);
+                    bodyCharCount += content.length;
                 } else {
-                    // 話者がいない地の文などの場合
-                    totalLength += trimmedLine.length;
+                    // 3. 話者がいない場合（地の文など）
+                    // コマンド（@から始まる行）は isSkipNaninovelSyntax で除外済みのはず
+                    bodyCharCount += cleanLine.length;
                 }
             }
 
-            // ユニークな話者名の合計文字数を計算
-            let totalSpeakerLength = 0;
-            speakerUniqueChars.forEach(name => totalSpeakerLength += name.length);
+            // ユニーク話者名の合計
+            const totalSpeakerNameChars = Array.from(uniqueSpeakers).join('').length;
 
             return [
-                new StatItem("セリフ純文字数", `${totalLength} 文字`, "comment-discussion"),
-                new StatItem("話者名（重複除外）", `${totalSpeakerLength} 文字`, "person"),
-                new StatItem("合計見積文字数", `${totalLength + totalSpeakerLength} 文字`, "layers")
+                new StatItem("セリフ・地の文", `${bodyCharCount} 文字`, "comment-discussion"),
+                new StatItem("話者名 (重複なし)", `${totalSpeakerNameChars} 文字`, "person"),
+                new StatItem("合計 (シート換算用)", `${bodyCharCount + totalSpeakerNameChars} 文字`, "layers")
             ];
         } catch (err) {
-            console.error("Critical error in getChildren:", err);
             return [new StatItem("解析エラー発生", String(err), "error")];
         }
     }
