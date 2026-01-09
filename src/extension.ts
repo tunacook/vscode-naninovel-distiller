@@ -61,7 +61,7 @@ class StatItem extends vscode.TreeItem {
             case 'speaker_group':
                 this.iconPath = new vscode.ThemeIcon('organization');
                 if (statsData) {
-                    this.description = `${statsData.speakerList.length} 名 (ユニーク)`;
+                    this.description = `${statsData.speakerList.length} Speakers (unique)`;
                 }
                 break;
             case 'speaker_name':
