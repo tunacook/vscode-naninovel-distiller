@@ -4,9 +4,16 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  naninovel-script-spec: link:../naninovel-script-spec
+
 importers:
 
   .:
+    dependencies:
+      naninovel-script-spec:
+        specifier: link:../naninovel-script-spec
+        version: link:../naninovel-script-spec
     devDependencies:
       '@types/mocha':
         specifier: ^10.0.10
