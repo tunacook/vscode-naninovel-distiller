@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { isSkipNaninovelSyntax } from 'naninovel-script-spec';
+import { isSkipNaninovelSyntax, trimRuby, trimBrTag, trimFgTag } from 'naninovel-script-spec';
 
 export function activate(context: vscode.ExtensionContext) {
     const statsProvider = new NaninovelStatsProvider();
@@ -64,7 +64,16 @@ class NaninovelStatsProvider implements vscode.TreeDataProvider<StatItem> {
                     continue;
                 }
 
-                console.log("text:",line);
+                // rubyタグを取り除いて
+                const trimmedLine2 = trimRuby(trimmedLine);
+            
+                const aaa = trimBrTag(
+                            trimmedLine2
+                        );
+                        console.log("aaa:", aaa);
+
+
+                // console.log("text:",trimmedLine2);
 
                 // --- ここからカウントロジック ---
                 // 形式が "話者: セリフ" かどうかを判定

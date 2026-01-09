@@ -59,6 +59,12 @@
 				"npm: watch-tests"
 			],
 			"problemMatcher": []
-		}
+		},
+        {
+            "label": "full-cleanup-build",
+            "type": "shell",
+            "command": "rm -rf dist && pnpm exec esbuild ./src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --platform=node --format=cjs --preserve-symlinks",
+            "problemMatcher": []
+        }
 	]
 }
