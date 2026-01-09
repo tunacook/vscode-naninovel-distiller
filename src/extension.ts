@@ -56,10 +56,10 @@ class NaninovelStatsProvider implements vscode.TreeDataProvider<StatItem> {
                 const trimmed = line.trim();
                 if (!trimmed || isSkipNaninovelSyntax(trimmed)) continue;
 
-                // 1. タグ除去（ルビやFGタグなど、中身だけを残す）
-                let cleanLine = trimFgTag(trimBrTag(trimRuby(trimmed)));
+                // タグ除去（ルビやFGタグなど、中身だけを残す）
+                const cleanLine = trimFgTag(trimBrTag(trimRuby(trimmed)));
 
-                // 2. 話者とセリフの分離
+                // 話者とセリフの分離
                 // Naninovelの「話者:」は行頭から始まり、その後にセリフが続く形式
                 // 例: "Yuko: こんにちは" -> speaker: "Yuko", content: "こんにちは"
                 const genericTextMatch = cleanLine.match(/^([^:\s]+)\s*:\s*(.*)$/);
@@ -71,7 +71,7 @@ class NaninovelStatsProvider implements vscode.TreeDataProvider<StatItem> {
                     uniqueSpeakers.add(speaker);
                     bodyCharCount += content.length;
                 } else {
-                    // 3. 話者がいない場合（地の文など）
+                    // 話者がいない場合（地の文など）
                     // コマンド（@から始まる行）は isSkipNaninovelSyntax で除外済みのはず
                     bodyCharCount += cleanLine.length;
                 }
