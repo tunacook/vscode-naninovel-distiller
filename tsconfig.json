@@ -10,10 +10,12 @@
 		"sourceMap": true,
 		"skipLibCheck": true, // 外部ライブラリ自体の型エラーを無視
 		"strict": true,   /* enable all strict type-checking options */
-		/* Additional Checks */
-		// "noImplicitReturns": true, /* Report error when not all code paths in function return a value. */
-		// "noFallthroughCasesInSwitch": true, /* Report errors for fallthrough cases in switch statement. */
-		// "noUnusedParameters": true,  /* Report errors on unused parameters. */
+		"baseUrl": ".",
+        "paths": {
+            "naninovel-script-spec": [
+                "./node_modules/naninovel-script-spec/dist/index.d.ts"
+            ]
+        }
 	},
 	"include": ["src/**/*"],
 	"exclude": ["node_modules", ".vscode-test"]
