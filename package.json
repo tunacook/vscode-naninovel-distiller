@@ -34,7 +34,7 @@
         {
           "id": "nani-distiller-sidebar",
           "title": "Nani Distiller",
-          "icon": "$(graph)" 
+          "icon": "$(graph)"
         }
       ]
     },
@@ -66,6 +66,6 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "naninovel-script-spec": "link:../naninovel-script-spec"
+    "naninovel-script-spec": "github:tunacook/naninovel-script-spec"
   }
 }
