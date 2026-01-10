@@ -1,10 +1,8 @@
 {
 	"compilerOptions": {
-		"module": "Node16",
+		"module": "node20",
 		"target": "ES2022",
-		"lib": [
-			"ES2022"
-		],
+		"lib": ["ES2022", "DOM"],
 		"types": ["mocha", "vscode"],
 		"sourceMap": true,
 		"rootDir": "src",
