@@ -81,6 +81,6 @@
     "typescript-eslint": "^8.52.0"
   },
   "dependencies": {
-    "naninovel-script-spec": "github:tunacook/naninovel-script-spec"
+    "naninovel-script-spec": "github:tunacook/naninovel-script-spec#main"
   }
 }

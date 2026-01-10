@@ -9,7 +9,7 @@ importers:
   .:
     dependencies:
       naninovel-script-spec:
-        specifier: github:tunacook/naninovel-script-spec
+        specifier: github:tunacook/naninovel-script-spec#main
         version: https://codeload.github.com/tunacook/naninovel-script-spec/tar.gz/dfb6da49df6b8a8e4bc890f848747811c0655ac7
     devDependencies:
       '@types/glob':
