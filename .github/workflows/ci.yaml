@@ -29,7 +29,7 @@ jobs:
           node-version: 22
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile --dir .
+        run: pnpm install --frozen-lockfile --ignore-workspace
         env:
           NPM_CONFIG_WORKSPACE: false
 
