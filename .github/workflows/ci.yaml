@@ -30,9 +30,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile --ignore-workspace
-        env:
-          NPM_CONFIG_WORKSPACE: false
+        run: pnpm install --frozen-lockfile
 
       - name: Build & Compile Tests
         run: |
