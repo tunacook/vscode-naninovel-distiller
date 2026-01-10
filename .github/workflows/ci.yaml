@@ -29,9 +29,9 @@ jobs:
           node-version: 22
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --dir .
         env:
-          PNPM_WORKSPACE_DIR: ${{ github.workspace }}
+          NPM_CONFIG_WORKSPACE: false
 
       - name: Lint & Compile
         run: pnpm run compile
