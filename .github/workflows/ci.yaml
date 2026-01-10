@@ -32,6 +32,15 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Inspect Dependency
+        run: |
+          echo "--- Checking files in node_modules ---"
+          ls -R node_modules/naninovel-script-spec
+          echo "--- Content of index.d.ts ---"
+          cat node_modules/naninovel-script-spec/index.d.ts || cat node_modules/naninovel-script-spec/dist/index.d.ts
+          echo "--- TypeScript Trace Resolution ---"
+          pnpm tsc -p . --traceResolution | grep "naninovel-script-spec" || true
+
       - name: Build & Compile Tests
         run: |
           pnpm run compile
