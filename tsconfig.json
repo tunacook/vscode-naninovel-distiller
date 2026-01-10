@@ -6,7 +6,7 @@
 		"moduleResolution": "Node16",
 		"target": "ES2022",
 		"lib": ["ES2022", "DOM"],
-		"types": ["node", "mocha", "vscode"],
+		// "types": ["node", "mocha", "vscode"],
 		"sourceMap": true,
 		"skipLibCheck": true, // 外部ライブラリ自体の型エラーを無視
 		"strict": true,   /* enable all strict type-checking options */
