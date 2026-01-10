@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Lint & Compile
+        run: pnpm run compile
+
+      - name: Run Tests
+        # Linux(Ubuntu)の場合は xvfb を使ってVS Codeを仮想ディスプレイで起動する
+        run: |
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            xvfb-run pnpm test
+          else
+            pnpm test
+          fi
