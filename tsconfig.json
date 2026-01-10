@@ -1,11 +1,13 @@
 {
 	"compilerOptions": {
+		"outDir": "out",
+        "rootDir": "src",
 		"module": "node20",
+		"moduleResolution": "Node16",
 		"target": "ES2022",
 		"lib": ["ES2022", "DOM"],
 		"types": ["node", "mocha", "vscode"],
 		"sourceMap": true,
-		"rootDir": "src",
 		"strict": true,   /* enable all strict type-checking options */
 		/* Additional Checks */
 		// "noImplicitReturns": true, /* Report error when not all code paths in function return a value. */
