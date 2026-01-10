@@ -8,6 +8,7 @@
 		"lib": ["ES2022", "DOM"],
 		"types": ["node", "mocha", "vscode"],
 		"sourceMap": true,
+		"skipLibCheck": true, // 外部ライブラリ自体の型エラーを無視
 		"strict": true,   /* enable all strict type-checking options */
 		/* Additional Checks */
 		// "noImplicitReturns": true, /* Report error when not all code paths in function return a value. */
