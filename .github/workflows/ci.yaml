@@ -37,13 +37,19 @@ jobs:
       - name: Lint & Compile
         run: pnpm run compile
 
-      - name: Run Tests
-        # Linux環境ではVS Codeの起動にディスプレイサーバーが必要なため xvfb を使用
+      - name: Install dependencies for VS Code tests (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libasound2 libgbm1 libgtk-3-0 libnss3 libxss1 libasound2
+
+      - name: Run tests
         run: |
           if [ "$RUNNER_OS" == "Linux" ]; then
-            xvfb-run pnpm test
+            xvfb-run pnpm test --verbose
           else
             pnpm test
           fi
         env:
-          VSCODE_LOG_LEVEL: debug
+          DEBUG: "*"
+          VSCODE_LOG_LEVEL: trace
