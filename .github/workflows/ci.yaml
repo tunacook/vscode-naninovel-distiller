@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        # os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10 # localと合わせる
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Inspect Dependency
+        run: |
+          echo "--- Checking files in node_modules ---"
+          ls -R node_modules/naninovel-script-spec
+          echo "--- Content of index.d.ts ---"
+          cat node_modules/naninovel-script-spec/index.d.ts || cat node_modules/naninovel-script-spec/dist/index.d.ts
+          echo "--- TypeScript Trace Resolution ---"
+          pnpm tsc -p . --traceResolution | grep "naninovel-script-spec" || true
+
+      - name: Build & Compile Tests
+        run: |
+          pnpm run compile
+          pnpm run compile-tests
+
+      - name: Install dependencies for VS Code tests (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libasound2t64 libgbm1 libgtk-3-0 libnss3 xauth xvfb
+
+      - name: Run tests
+        run: |
+          if [ "${{ runner.os }}" == "Linux" ]; then
+            xvfb-run pnpm test
+          else
+            pnpm test
+          fi
+        env:
+          VSCODE_LOG_LEVEL: info

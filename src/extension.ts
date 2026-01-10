@@ -220,7 +220,7 @@ class NaninovelStatsProvider implements vscode.TreeDataProvider<StatItem> {
                 body += content.length;
 
                 // 単語の抽出とカウント
-                const extractedWords = content.split(/[\s\p{P}]+/u).filter(w => w.length > 0);
+                const extractedWords = content.split(/[\s\p{P}]+/u).filter((w: string) => w.length > 0);
                 words += extractedWords.length;
                 wordList.push(...extractedWords);
             }
