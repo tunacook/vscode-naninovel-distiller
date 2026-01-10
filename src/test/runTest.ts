@@ -1,3 +1,4 @@
+// src/test/runTest.ts
 import * as path from 'path';
 import { runTests } from '@vscode/test-electron';
 
@@ -8,10 +9,16 @@ async function main() {
 
         await runTests({
             extensionDevelopmentPath,
-            extensionTestsPath
+            extensionTestsPath,
+            // Apple Silicon Mac を使用している場合、arm64版を強制指定して高速化
+            platform: 'darwin-arm64',
+            launchArgs: [
+                '--disable-extensions',
+                '--disable-gpu'
+            ]
         });
     } catch (err) {
-        console.error('Failed to run tests');
+        console.error('Failed to run tests', err);
         process.exit(1);
     }
 }

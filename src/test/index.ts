@@ -9,9 +9,7 @@ export async function run(): Promise<void> {
     });
 
     // out/test フォルダを起点にする
-    const testsRoot = path.resolve(__dirname, '.');
-
-    // glob でテストファイルを取得
+    const testsRoot = path.resolve(__dirname, '..'); // out/test を指すように
     const files = await glob('**/*.test.js', { cwd: testsRoot });
 
     files.forEach((f: string) => {
