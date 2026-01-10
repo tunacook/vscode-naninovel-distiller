@@ -10,12 +10,11 @@ async function main() {
         await runTests({
             extensionDevelopmentPath,
             extensionTestsPath,
-            // Apple Silicon Mac を使用している場合、arm64版を強制指定して高速化
-            platform: 'darwin-arm64',
-            launchArgs: [
-                '--disable-extensions',
-                '--disable-gpu'
-            ]
+            // 実行環境が Mac (darwin) かつ arm64 なら指定、それ以外はデフォルト
+            platform: process.platform === 'darwin' && process.arch === 'arm64'
+                      ? 'darwin-arm64'
+                      : undefined,
+            launchArgs: ['--disable-extensions']
         });
     } catch (err) {
         console.error('Failed to run tests', err);

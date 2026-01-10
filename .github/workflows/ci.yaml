@@ -34,28 +34,32 @@ jobs:
         env:
           NPM_CONFIG_WORKSPACE: false
 
-      - name: Lint & Compile
-        run: pnpm run compile
+      - name: Build & Compile Tests
+        run: |
+          pnpm run compile
+          pnpm run compile-tests
 
       - name: Install dependencies for VS Code tests (Linux)
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            libasound2t64 \
+            libasound2 \
             libgbm1 \
             libgtk-3-0 \
             libnss3 \
             libxss1 \
-            xvfb
+            xvfb \
+            libx11-xcb1 \
+            libxcb-dri3-0 \
+            libxtst6
 
       - name: Run tests
         run: |
-          if [ "$RUNNER_OS" == "Linux" ]; then
-            xvfb-run pnpm test --verbose
+          if [ "${{ runner.os }}" == "Linux" ]; then
+            xvfb-run pnpm test
           else
             pnpm test
           fi
         env:
-          DEBUG: "*"
-          VSCODE_LOG_LEVEL: trace
+          VSCODE_LOG_LEVEL: info
