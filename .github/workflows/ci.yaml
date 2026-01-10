@@ -30,6 +30,8 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+        env:
+          PNPM_WORKSPACE_DIR: ${{ github.workspace }}
 
       - name: Lint & Compile
         run: pnpm run compile
