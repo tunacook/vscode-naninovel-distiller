@@ -45,3 +45,5 @@ jobs:
           else
             pnpm test
           fi
+        env:
+          VSCODE_LOG_LEVEL: debug
