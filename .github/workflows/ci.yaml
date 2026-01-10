@@ -34,10 +34,4 @@ jobs:
         run: pnpm run compile
 
       - name: Run Tests
-        # Linux(Ubuntu)の場合は xvfb を使ってVS Codeを仮想ディスプレイで起動する
-        run: |
-          if [ "$RUNNER_OS" == "Linux" ]; then
-            xvfb-run pnpm test
-          else
-            pnpm test
-          fi
+        run: pnpm test
