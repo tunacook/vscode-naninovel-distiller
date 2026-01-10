@@ -7,6 +7,11 @@
     "vscode": "^1.107.0"
   },
   "main": "./dist/extension.js",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "naninovel-script-spec"
+    ]
+  },
   "contributes": {
     "configuration": {
       "title": "Naninovel Distiller",
