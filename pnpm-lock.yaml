@@ -10,10 +10,6 @@ overrides:
 importers:
 
   .:
-    dependencies:
-      naninovel-script-spec:
-        specifier: link:../naninovel-script-spec
-        version: link:../naninovel-script-spec
     devDependencies:
       '@types/glob':
         specifier: ^9.0.0
