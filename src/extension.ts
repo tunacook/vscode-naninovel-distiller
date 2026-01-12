@@ -207,22 +207,42 @@ class NaninovelStatsProvider implements vscode.TreeDataProvider<StatItem> {
 
             for (const line of text.split(/\r?\n/)) {
                 const t = line.trim();
-                if (!t || isSkipNaninovelSyntax(t)) {continue;}
+                if (!t || isSkipNaninovelSyntax(t)) { continue; }
 
+                // 1. タグを除去 (ruby, br, fg 等)
                 const clean = trimFgTag(trimBrTag(trimRuby(t)));
-                const match = clean.match(/^([^:\s]+)\s*:\s*(.*)$/);
-                const content = match ? match[2] : clean;
 
-                if (match) {
-                    const n = match[1].trim();
-                    if (n) {speakers.add(n);}
+                // 2. 話者コロンの分離
+                // 最初のコロンを見つける
+                const colonIndex = clean.indexOf(':');
+
+                let content: string;
+                if (colonIndex !== -1) {
+                    // コロンがある場合
+                    // 左側を話者として抽出
+                    const speakerPart = clean.substring(0, colonIndex).trim();
+                    if (speakerPart) {
+                        speakers.add(speakerPart);
+                    }
+                    // 右側（コロン以降）のみを本文とする
+                    content = clean.substring(colonIndex + 1);
+                } else {
+                    // コロンがない場合は、行全体を本文（地の文）とする
+                    content = clean;
                 }
-                body += content.length;
 
-                // 単語の抽出とカウント
-                const extractedWords = content.split(/[\s\p{P}]+/u).filter((w: string) => w.length > 0);
-                words += extractedWords.length;
-                wordList.push(...extractedWords);
+                // 3. 本文のクリーニング（前後の空白を削除）
+                const finalContent = content.trim();
+
+                // 4. カウント処理
+                if (finalContent.length > 0) {
+                    body += finalContent.length;
+
+                    // 単語の抽出とカウント
+                    const extractedWords = finalContent.split(/[\s\p{P}]+/u).filter((w: string) => w.length > 0);
+                    words += extractedWords.length;
+                    wordList.push(...extractedWords);
+                }
             }
             return { body, words, speakers, wordList };
         } catch {
