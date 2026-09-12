@@ -24,7 +24,7 @@ jobs:
           version: 10.27.0 # localと合わせる（pnpm 10.28+はgit依存のonlyBuiltDependenciesが効かないバグがあるため固定: https://github.com/pnpm/pnpm/issues/12367）
 
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: 'pnpm'
