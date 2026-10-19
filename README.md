@@ -64,11 +64,12 @@ If you have any requirements or dependencies, add a section describing those and
 デフォルト値:
 
 ```json
-["node_modules", ".git", ".github", ".prh", ".vscode", "docs", "staging-test"]
+["docs", "staging-test"]
 ```
 
 * ディレクトリ名の完全一致で判定する（パスやワイルドカードは使えない）
 * 階層の深さに関係なく、同じ名前のディレクトリはすべて除外される
+* `node_modules` と `.` で始まるディレクトリ（`.git`、`.vscode` など）は設定に関係なく常に除外される（リストに書く必要はない）
 * 値を設定するとデフォルト値は丸ごと置き換わるため、デフォルトの除外も残したい場合は一緒に記載する
 * 設定を変更すると統計ビューは自動で更新される
 
@@ -77,7 +78,7 @@ If you have any requirements or dependencies, add a section describing those and
 ```jsonc
 {
   "naninovelDistiller.excludeDirectories": [
-    "node_modules", ".git", ".github", ".prh", ".vscode", "docs", "staging-test",
+    "docs", "staging-test",
     "drafts"
   ]
 }

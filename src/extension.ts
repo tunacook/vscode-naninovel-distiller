@@ -16,6 +16,13 @@ export function activate(context: vscode.ExtensionContext) {
     );
 }
 
+// 設定に関係なく常に除外するディレクトリ（これに加えて . で始まるディレクトリも常に除外する）
+const ALWAYS_EXCLUDE_DIRS = ['node_modules'];
+
+function isExcludedDir(name: string, excludeDirs: string[]): boolean {
+    return name.startsWith('.') || excludeDirs.includes(name);
+}
+
 // --- 型定義 ---
 type ItemType = 'root_summary' | 'folder' | 'file' | 'speaker_group' | 'speaker_name' | 'word_group' | 'word_name';
 
@@ -92,7 +99,8 @@ class NaninovelStatsProvider implements vscode.TreeDataProvider<StatItem> {
     }
 
     private getExcludeDirs(): string[] {
-        return vscode.workspace.getConfiguration('naninovelDistiller').get<string[]>('excludeDirectories') || [];
+        const configured = vscode.workspace.getConfiguration('naninovelDistiller').get<string[]>('excludeDirectories') || [];
+        return [...new Set([...ALWAYS_EXCLUDE_DIRS, ...configured])];
     }
 
     async getChildren(element?: StatItem): Promise<StatItem[]> {
@@ -153,7 +161,7 @@ class NaninovelStatsProvider implements vscode.TreeDataProvider<StatItem> {
         for (const [name, type] of children) {
             const childUri = vscode.Uri.joinPath(uri, name);
             if (type === vscode.FileType.Directory) {
-                if (excludeDirs.includes(name)) {continue;}
+                if (isExcludedDir(name, excludeDirs)) {continue;}
                 const stats = await this.getDeepStats(childUri, excludeDirs);
                 items.push(new StatItem(name, childUri, vscode.TreeItemCollapsibleState.Collapsed, 'folder', this.flatten(stats)));
             } else if (name.endsWith('.nani')) {
@@ -182,7 +190,7 @@ class NaninovelStatsProvider implements vscode.TreeDataProvider<StatItem> {
         for (const [name, type] of children) {
             const uri = vscode.Uri.joinPath(folderUri, name);
             if (type === vscode.FileType.Directory) {
-                if (excludeDirs.includes(name)) {continue;}
+                if (isExcludedDir(name, excludeDirs)) {continue;}
                 const sub = await this.getDeepStats(uri, excludeDirs);
                 body += sub.body; words += sub.words;
                 sub.speakers.forEach(v => speakers.add(v));
