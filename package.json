@@ -26,15 +26,10 @@
             "type": "string"
           },
           "default": [
-            "node_modules",
-            ".git",
-            ".github",
-            ".prh",
-            ".vscode",
             "docs",
             "staging-test"
           ],
-          "description": "統計スキャンから除外するディレクトリ名のリスト"
+          "description": "統計スキャンから除外するディレクトリ名のリスト（node_modules と . で始まるディレクトリは設定に関係なく常に除外される）"
         }
       }
     },

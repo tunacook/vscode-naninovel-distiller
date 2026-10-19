@@ -33,11 +33,12 @@
 デフォルト値:
 
 ```json
-["node_modules", ".git", ".github", ".prh", ".vscode", "docs", "staging-test"]
+["docs", "staging-test"]
 ```
 
 * ディレクトリ名の完全一致で判定する（パスやワイルドカードは使えない）
 * 階層の深さに関係なく、同じ名前のディレクトリはすべて除外される
+* `node_modules` と `.` で始まるディレクトリ（`.git`、`.vscode` など）は設定に関係なく常に除外される（リストに書く必要はない）
 * 値を設定するとデフォルト値は丸ごと置き換わるため、デフォルトの除外も残したい場合は一緒に記載する
 * 設定を変更すると統計ビューは自動で更新される
 
@@ -46,7 +47,7 @@
 ```jsonc
 {
   "naninovelDistiller.excludeDirectories": [
-    "node_modules", ".git", ".github", ".prh", ".vscode", "docs", "staging-test",
+    "docs", "staging-test",
     "drafts"
   ]
 }
@@ -54,7 +55,7 @@
 
 設定画面（`Cmd+,`、Windows/Linux は `Ctrl+,`）で「Naninovel Distiller」を検索しても変更できる。
 
-なお、カウント対象のファイルは [`.nani` 拡張子（Naninovel シナリオスクリプト）](https://naninovel.com/guide/scenario-scripting)のみで、これは設定では変更できない。
+なお、カウント対象のファイルは [`.nani` 拡張子（Naninovel シナリオスクリプト）](https://naninovel.com/guide/scenario-scripting)のみで、これは設定では変更できない。配下に `.nani` ファイルが1つもないディレクトリは、統計ビューに表示されない。
 
 ## ローカルでの実行方法
 
