@@ -1,6 +1,61 @@
-# vscode-naninovel-distiller README
+# Naninovel Distiller
 
-This is the README for your extension "vscode-naninovel-distiller". After writing up a brief description, we recommend including the following sections.
+[Naninovel](https://naninovel.com/) のシナリオスクリプト（`.nani`）の文字数・ワード数・話者を集計し、VS Code のサイドバーに表示する拡張機能。
+
+## 機能
+
+アクティビティバーの「Nani Distiller」を開くと、「Scenario Statistics」ビューにワークスペース内の統計が表示される。
+
+* **All Speakers**: ワークスペース全体に登場する話者の一覧
+* **フォルダ・ファイル**: フォルダ・`.nani` ファイルごとに文字数とワード数を表示する。フォルダの値は配下のファイルの合計
+* **ファイルの内訳**: ファイルを展開すると、文字数、ワード数（出現した単語の一覧つき）、そのファイルの話者を表示する
+
+統計はファイルの保存時、アクティブなエディタの切り替え時、設定の変更時に更新される。
+
+### 集計のルール
+
+* コマンド行やコメント行など、本文以外の行は集計しない（判定は [naninovel-script-spec](https://github.com/tunacook/naninovel-script-spec) による）
+* `<br>` は取り除き、`<fg>` は中の文字だけを残して数える。`<ruby>` は親文字とルビ文字の両方を数える
+* `話者: セリフ` の形式の行は、最初の `:` より前を話者、後ろを本文として扱う。`:` がない行は地の文として行全体を本文にする
+* 文字数は本文の前後の空白を除いた文字数。ワード数は本文を空白と句読点・記号で区切った数
+* マルチルートワークスペースでは、最初のフォルダだけを集計する
+
+## 必要な環境
+
+* VS Code 1.107.0 以上
+
+## 設定
+
+### `naninovelDistiller.excludeDirectories`
+
+統計スキャンから除外するディレクトリ名のリスト。
+
+デフォルト値:
+
+```json
+["docs", "staging-test"]
+```
+
+* ディレクトリ名の完全一致で判定する（パスやワイルドカードは使えない）
+* 階層の深さに関係なく、同じ名前のディレクトリはすべて除外される
+* `node_modules` と `.` で始まるディレクトリ（`.git`、`.vscode` など）は設定に関係なく常に除外される（リストに書く必要はない）
+* 値を設定するとデフォルト値は丸ごと置き換わるため、デフォルトの除外も残したい場合は一緒に記載する
+* 設定を変更すると統計ビューは自動で更新される
+
+設定例（シナリオのワークスペースの `.vscode/settings.json`）:
+
+```jsonc
+{
+  "naninovelDistiller.excludeDirectories": [
+    "docs", "staging-test",
+    "drafts"
+  ]
+}
+```
+
+設定画面（`Cmd+,`、Windows/Linux は `Ctrl+,`）で「Naninovel Distiller」を検索しても変更できる。
+
+なお、カウント対象のファイルは [`.nani` 拡張子（Naninovel シナリオスクリプト）](https://naninovel.com/guide/scenario-scripting)のみで、これは設定では変更できない。
 
 ## ローカルでの実行方法
 
@@ -37,96 +92,10 @@ pnpm run lint         # Lint
 ### VSIX を作成して手元の VS Code にインストールする
 
 ```sh
-pnpm dlx @vscode/vsce package --no-dependencies
+pnpm exec vsce package --no-dependencies
 code --install-extension vscode-naninovel-distiller-0.0.1.vsix
 ```
 
-## Features
+## リリースノート
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
-
-For example if there is an image subfolder under your extension project workspace:
-
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
-
-## Requirements
-
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
-
-## Extension Settings
-
-### `naninovelDistiller.excludeDirectories`
-
-統計スキャンから除外するディレクトリ名のリスト。
-
-デフォルト値:
-
-```json
-["docs", "staging-test"]
-```
-
-* ディレクトリ名の完全一致で判定する（パスやワイルドカードは使えない）
-* 階層の深さに関係なく、同じ名前のディレクトリはすべて除外される
-* `node_modules` と `.` で始まるディレクトリ（`.git`、`.vscode` など）は設定に関係なく常に除外される（リストに書く必要はない）
-* 値を設定するとデフォルト値は丸ごと置き換わるため、デフォルトの除外も残したい場合は一緒に記載する
-* 設定を変更すると統計ビューは自動で更新される
-
-設定例（シナリオのワークスペースの `.vscode/settings.json`）:
-
-```jsonc
-{
-  "naninovelDistiller.excludeDirectories": [
-    "docs", "staging-test",
-    "drafts"
-  ]
-}
-```
-
-設定画面（`Cmd+,`、Windows/Linux は `Ctrl+,`）で「Naninovel Distiller」を検索しても変更できる。
-
-なお、カウント対象のファイルは [`.nani` 拡張子（Naninovel シナリオスクリプト）](https://naninovel.com/guide/scenario-scripting)のみで、これは設定では変更できない。
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+[CHANGELOG.md](CHANGELOG.md) を参照。
