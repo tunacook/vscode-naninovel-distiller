@@ -2,6 +2,45 @@
 
 This is the README for your extension "vscode-naninovel-distiller". After writing up a brief description, we recommend including the following sections.
 
+## ローカルでの実行方法
+
+### 前提
+
+* Node.js 24（CI と同じバージョン）
+* pnpm 10.27.0（10.28 以降は git 依存の `onlyBuiltDependencies` が効かないため固定）
+* VS Code 1.107.0 以上
+
+### セットアップ
+
+```sh
+pnpm install
+```
+
+### デバッグ実行
+
+1. このリポジトリを VS Code で開く
+2. `F5` を押す（または「実行とデバッグ」ビューで `Run Extension` を選択して実行）
+3. ビルドタスク `full-cleanup-build` が走り、`dist/extension.js` が生成された後、拡張機能が読み込まれた新しいウィンドウ（Extension Development Host）が開く
+4. 開いたウィンドウで Naninovel シナリオを含むフォルダを開き、アクティビティバーの「Nani Distiller」から統計を確認する
+
+コードを変更した場合は、Extension Development Host ウィンドウで `Cmd+R`（Windows/Linux は `Ctrl+R`）を押すか、デバッグツールバーの再起動ボタンで再読み込みする。
+
+### その他のコマンド
+
+```sh
+pnpm run compile      # ビルド
+pnpm run watch        # 変更を監視してビルド
+pnpm run check-types  # 型チェック
+pnpm run lint         # Lint
+```
+
+### VSIX を作成して手元の VS Code にインストールする
+
+```sh
+pnpm dlx @vscode/vsce package --no-dependencies
+code --install-extension vscode-naninovel-distiller-0.0.1.vsix
+```
+
 ## Features
 
 Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
