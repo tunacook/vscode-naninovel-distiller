@@ -41,6 +41,12 @@ jobs:
           echo "--- TypeScript Trace Resolution ---"
           pnpm tsc -p . --traceResolution | grep "naninovel-script-spec" || true
 
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Type Check
+        run: pnpm run check-types
+
       - name: Build & Compile Tests
         run: |
           pnpm run compile
@@ -61,3 +67,6 @@ jobs:
           fi
         env:
           VSCODE_LOG_LEVEL: info
+
+      - name: Package VSIX
+        run: pnpm exec vsce package --no-dependencies
