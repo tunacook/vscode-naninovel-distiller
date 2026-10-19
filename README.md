@@ -57,14 +57,35 @@ If you have any requirements or dependencies, add a section describing those and
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+### `naninovelDistiller.excludeDirectories`
 
-For example:
+統計スキャンから除外するディレクトリ名のリスト。
 
-This extension contributes the following settings:
+デフォルト値:
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+```json
+["node_modules", ".git", ".github", ".prh", ".vscode", "docs", "staging-test"]
+```
+
+* ディレクトリ名の完全一致で判定する（パスやワイルドカードは使えない）
+* 階層の深さに関係なく、同じ名前のディレクトリはすべて除外される
+* 値を設定するとデフォルト値は丸ごと置き換わるため、デフォルトの除外も残したい場合は一緒に記載する
+* 設定を変更すると統計ビューは自動で更新される
+
+設定例（シナリオのワークスペースの `.vscode/settings.json`）:
+
+```jsonc
+{
+  "naninovelDistiller.excludeDirectories": [
+    "node_modules", ".git", ".github", ".prh", ".vscode", "docs", "staging-test",
+    "drafts"
+  ]
+}
+```
+
+設定画面（`Cmd+,`、Windows/Linux は `Ctrl+,`）で「Naninovel Distiller」を検索しても変更できる。
+
+なお、カウント対象のファイルは [`.nani` 拡張子（Naninovel シナリオスクリプト）](https://naninovel.com/guide/scenario-scripting)のみで、これは設定では変更できない。
 
 ## Known Issues
 
