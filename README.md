@@ -60,7 +60,7 @@
 
 ### 前提
 
-* Node.js 24（CI と同じバージョン）
+* Node.js 26（CI と同じバージョン）
 * pnpm 10.27.0（10.28 以降は git 依存の `onlyBuiltDependencies` が効かないため固定）
 * VS Code 1.107.0 以上
 
