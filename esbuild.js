@@ -36,8 +36,7 @@ async function main() {
         platform: 'node',
         outfile: 'dist/extension.js',
         external: [
-            'vscode',
-            'naninovel-script-spec'
+            'vscode'
         ],
         // ----------------------------------------------
         logLevel: 'silent',

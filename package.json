@@ -3,6 +3,10 @@
   "displayName": "Naninovel Distiller",
   "description": "Naninovelシナリオの文字数統計を表示します",
   "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tunacook/vscode-naninovel-distiller.git"
+  },
   "engines": {
     "vscode": "^1.107.0"
   },
