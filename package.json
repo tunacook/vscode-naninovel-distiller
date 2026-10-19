@@ -72,6 +72,7 @@
     "@types/node": "22.x",
     "@types/vscode": "^1.107.0",
     "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^4.0.0",
     "esbuild": "^0.27.1",
     "eslint": "^9.39.1",
     "glob": "^13.0.0",
