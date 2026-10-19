@@ -31,6 +31,7 @@ type Stats = {
     words: number;
     speakers: Set<string>;
     wordList: string[]; // 単語の内訳を保持
+    hasNani: boolean; // 配下に .nani ファイルが1つ以上あるか
 };
 
 type FlatStats = {
@@ -163,6 +164,7 @@ class NaninovelStatsProvider implements vscode.TreeDataProvider<StatItem> {
             if (type === vscode.FileType.Directory) {
                 if (isExcludedDir(name, excludeDirs)) {continue;}
                 const stats = await this.getDeepStats(childUri, excludeDirs);
+                if (!stats.hasNani) {continue;}
                 items.push(new StatItem(name, childUri, vscode.TreeItemCollapsibleState.Collapsed, 'folder', this.flatten(stats)));
             } else if (name.endsWith('.nani')) {
                 const stats = await this.countFileStats(childUri);
@@ -182,7 +184,7 @@ class NaninovelStatsProvider implements vscode.TreeDataProvider<StatItem> {
     }
 
     private async getDeepStats(folderUri: vscode.Uri, excludeDirs: string[]): Promise<Stats> {
-        let body = 0, words = 0;
+        let body = 0, words = 0, hasNani = false;
         const speakers = new Set<string>();
         const wordList: string[] = [];
         const children = await vscode.workspace.fs.readDirectory(folderUri);
@@ -195,14 +197,16 @@ class NaninovelStatsProvider implements vscode.TreeDataProvider<StatItem> {
                 body += sub.body; words += sub.words;
                 sub.speakers.forEach(v => speakers.add(v));
                 wordList.push(...sub.wordList);
+                hasNani ||= sub.hasNani;
             } else if (name.endsWith('.nani')) {
                 const sub = await this.countFileStats(uri);
                 body += sub.body; words += sub.words;
                 sub.speakers.forEach(v => speakers.add(v));
                 wordList.push(...sub.wordList);
+                hasNani ||= sub.hasNani;
             }
         }
-        return { body, words, speakers, wordList };
+        return { body, words, speakers, wordList, hasNani };
     }
 
     private async countFileStats(uri: vscode.Uri): Promise<Stats> {
@@ -252,9 +256,9 @@ class NaninovelStatsProvider implements vscode.TreeDataProvider<StatItem> {
                     wordList.push(...extractedWords);
                 }
             }
-            return { body, words, speakers, wordList };
+            return { body, words, speakers, wordList, hasNani: true };
         } catch {
-            return { body: 0, words: 0, speakers: new Set(), wordList: [] };
+            return { body: 0, words: 0, speakers: new Set(), wordList: [], hasNani: true };
         }
     }
 }
