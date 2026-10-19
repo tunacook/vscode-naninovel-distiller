@@ -55,7 +55,7 @@
 
 設定画面（`Cmd+,`、Windows/Linux は `Ctrl+,`）で「Naninovel Distiller」を検索しても変更できる。
 
-なお、カウント対象のファイルは [`.nani` 拡張子（Naninovel シナリオスクリプト）](https://naninovel.com/guide/scenario-scripting)のみで、これは設定では変更できない。
+なお、カウント対象のファイルは [`.nani` 拡張子（Naninovel シナリオスクリプト）](https://naninovel.com/guide/scenario-scripting)のみで、これは設定では変更できない。配下に `.nani` ファイルが1つもないディレクトリは、統計ビューに表示されない。
 
 ## ローカルでの実行方法
 
