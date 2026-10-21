@@ -3,10 +3,34 @@
   "displayName": "Naninovel Distiller",
   "description": "Naninovelシナリオの文字数統計を表示します",
   "version": "0.0.1",
+  "publisher": "tunacook",
+  "license": "MIT",
+  "preview": true,
+  "categories": [
+    "Visualization",
+    "Other"
+  ],
+  "keywords": [
+    "naninovel",
+    "nani",
+    "unity",
+    "visual novel",
+    "scenario",
+    "word count"
+  ],
+  "galleryBanner": {
+    "color": "#1e1e2e",
+    "theme": "dark"
+  },
+  "qna": false,
   "repository": {
     "type": "git",
     "url": "https://github.com/tunacook/vscode-naninovel-distiller.git"
   },
+  "bugs": {
+    "url": "https://github.com/tunacook/vscode-naninovel-distiller/issues"
+  },
+  "homepage": "https://github.com/tunacook/vscode-naninovel-distiller#readme",
   "engines": {
     "vscode": "^1.107.0"
   },
