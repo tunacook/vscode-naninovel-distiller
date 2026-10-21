@@ -98,6 +98,34 @@ pnpm exec vsce package --no-dependencies
 code --install-extension vscode-naninovel-distiller-0.0.1.vsix
 ```
 
+## Marketplace への公開
+
+VSIX を [Marketplace の管理ページ](https://marketplace.visualstudio.com/manage)から手動でアップロードして公開する。`vsce publish` で使う Azure DevOps のグローバル PAT は 2026年12月1日に廃止されるため使わない。
+
+### 前提
+
+* パブリッシャー `tunacook` に紐づく Microsoft アカウントで管理ページにサインインできること
+* パブリッシャー ID（`publisher`）と拡張機能名（`name`）は公開後に変更できない
+
+### 手順
+
+1. `package.json` の `version` を上げ、`CHANGELOG.md` に変更内容を書いて `main` にマージする（同じバージョンは再アップロードできない）
+2. `main` を最新にして VSIX を作成する
+
+    ```sh
+    git checkout main
+    git pull
+    pnpm exec vsce package --no-dependencies
+    ```
+
+    `vsce` は devDependency なので、`pnpm exec` を付けて実行する。依存パッケージは esbuild で `dist/extension.js` にバンドルされるため、`--no-dependencies` を付けてよい
+3. 生成された `vscode-naninovel-distiller-<version>.vsix` を管理ページからアップロードする
+    * 初回: 「New extension」→「Visual Studio Code」
+    * 2回目以降: 拡張機能の「…」メニュー →「Update」
+4. Marketplace 側の検証（数分）が終わると公開される
+
+アイコン・バナー色・キーワードなど Marketplace の表示に関わる項目も、上の手順で新しいバージョンを公開すると反映される。
+
 ## リリースノート
 
 [CHANGELOG.md](CHANGELOG.md) を参照。
