@@ -22,7 +22,7 @@ importers:
     dependencies:
       naninovel-script-spec:
         specifier: github:tunacook/naninovel-script-spec#main
-        version: https://codeload.github.com/tunacook/naninovel-script-spec/tar.gz/99830e5618efb45a3bace6aabab409776601ae8f
+        version: https://codeload.github.com/tunacook/naninovel-script-spec/tar.gz/dca97141ed52773d62ab6f50b730b77dfe497c19
     devDependencies:
       '@types/glob':
         specifier: ^9.0.0
@@ -1339,8 +1339,8 @@ packages:
   mute-stream@0.0.8:
     resolution: {integrity: sha512-nnbWWOkoWyUsTjKrhgD0dcz22mdkSnpYqbEjIm2nhwhuxlSkpywJmBo8h0ZqJdkp73mb90SssHkN4rsRaBAfAA==}
 
-  naninovel-script-spec@https://codeload.github.com/tunacook/naninovel-script-spec/tar.gz/99830e5618efb45a3bace6aabab409776601ae8f:
-    resolution: {gitHosted: true, tarball: https://codeload.github.com/tunacook/naninovel-script-spec/tar.gz/99830e5618efb45a3bace6aabab409776601ae8f}
+  naninovel-script-spec@https://codeload.github.com/tunacook/naninovel-script-spec/tar.gz/dca97141ed52773d62ab6f50b730b77dfe497c19:
+    resolution: {gitHosted: true, tarball: https://codeload.github.com/tunacook/naninovel-script-spec/tar.gz/dca97141ed52773d62ab6f50b730b77dfe497c19}
     version: 0.0.0
 
   natural-compare@1.4.0:
@@ -3203,7 +3203,7 @@ snapshots:
 
   mute-stream@0.0.8: {}
 
-  naninovel-script-spec@https://codeload.github.com/tunacook/naninovel-script-spec/tar.gz/99830e5618efb45a3bace6aabab409776601ae8f:
+  naninovel-script-spec@https://codeload.github.com/tunacook/naninovel-script-spec/tar.gz/dca97141ed52773d62ab6f50b730b77dfe497c19:
     dependencies:
       typescript: 5.9.3
 
