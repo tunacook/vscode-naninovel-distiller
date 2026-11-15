@@ -119,7 +119,7 @@ VSIX を [Marketplace の管理ページ](https://marketplace.visualstudio.com/m
     ```
 
     `vsce` は devDependency なので、`pnpm exec` を付けて実行する。依存パッケージは esbuild で `dist/extension.js` にバンドルされるため、`--no-dependencies` を付けてよい
-3. 生成された `vscode-naninovel-distiller-<version>.vsix` を管理ページからアップロードする
+3. 生成された `vscode-naninovel-distiller-<version>.vsix` を[管理ページ](https://marketplace.visualstudio.com/manage/publishers/tunacook)からアップロードする
     * 初回: 「New extension」→「Visual Studio Code」
     * 2回目以降: 拡張機能の「…」メニュー →「Update」
 4. Marketplace 側の検証（数分）が終わると公開される
