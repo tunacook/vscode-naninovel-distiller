@@ -18,10 +18,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # pnpm のバージョンは package.json の packageManager で固定する（Dependabot も同じバージョンで lockfile を更新させるため）
+      # 10.27.0 に固定している理由: pnpm 10.28+ は git 依存の onlyBuiltDependencies が効かないバグがある（https://github.com/pnpm/pnpm/issues/12367）
       - name: Install pnpm
         uses: pnpm/action-setup@v6
-        with:
-          version: 10.27.0 # localと合わせる（pnpm 10.28+はgit依存のonlyBuiltDependenciesが効かないバグがあるため固定: https://github.com/pnpm/pnpm/issues/12367）
 
       - name: Setup Node
         uses: actions/setup-node@v7
@@ -32,11 +32,13 @@ jobs:
       # lockfile が公式レジストリ以外（任意の URL や git リポジトリ）からパッケージを取得するように
       # 書き換えられていないかを確認する（lockfile injection 対策）
       # レジストリのパッケージは integrity のみが記録される（URL 取得は tarball 等が付く）ため、それ以外の取得元は自前の naninovel-script-spec だけを許可する
+      # git 依存の書式は pnpm のバージョンや操作によって gitHosted / integrity の有無が変わるため、
+      # それらは任意とし、tarball がコミット固定の自前リポジトリであることだけを確認する
       - name: Check lockfile sources
         run: |
           bad=$(grep -E '^\s+resolution: \{' pnpm-lock.yaml \
             | grep -vE '^\s+resolution: \{integrity: [^,}]+\}$' \
-            | grep -vE '^\s+resolution: \{gitHosted: true, tarball: https://codeload\.github\.com/tunacook/naninovel-script-spec/tar\.gz/[0-9a-f]{40}\}$' || true)
+            | grep -vE '^\s+resolution: \{(gitHosted: true, )?(integrity: [^,}]+, )?tarball: https://codeload\.github\.com/tunacook/naninovel-script-spec/tar\.gz/[0-9a-f]{40}\}$' || true)
           if [ -n "$bad" ]; then
             echo "::error file=pnpm-lock.yaml::公式レジストリ以外から取得するパッケージがあります"
             echo "$bad"
