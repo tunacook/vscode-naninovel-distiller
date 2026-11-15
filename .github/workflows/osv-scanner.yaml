@@ -1,0 +1,29 @@
+# 依存パッケージに既知のマルウェア・脆弱性が含まれていないかを OSV データベースで検査する。
+# OSV には OpenSSF の Malicious Packages（MAL-xxxx）が収録されているため、
+# 乗っ取られたパッケージや typosquatting パッケージの混入にも気づける。
+# - PR: 依存の追加・更新で混入したものをマージ前に止める
+# - 定期実行: マージ済みの依存が後からマルウェア認定されたケースに気づく
+name: OSV-Scanner
+
+on:
+  pull_request:
+    branches: ["main"]
+  schedule:
+    - cron: "0 0 * * 1" # 毎週月曜 09:00 JST
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    name: Scan dependencies
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@b1d267aea5211fa648d9d442fa64b90dbdcbdd36 # v2.7.0
+    permissions:
+      # reusable workflow が要求する権限（SARIF を Code Scanning にアップロードするため security-events: write が必要）
+      actions: read
+      contents: read
+      security-events: write
+    with:
+      scan-args: |-
+        --lockfile=./pnpm-lock.yaml
