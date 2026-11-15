@@ -29,8 +29,23 @@ jobs:
           node-version: 26
           cache: 'pnpm'
 
+      # lockfile が公式レジストリ以外（任意の URL や git リポジトリ）からパッケージを取得するように
+      # 書き換えられていないかを確認する（lockfile injection 対策）
+      # レジストリのパッケージは integrity のみが記録される（URL 取得は tarball 等が付く）ため、それ以外の取得元は自前の naninovel-script-spec だけを許可する
+      - name: Check lockfile sources
+        run: |
+          bad=$(grep -E '^\s+resolution: \{' pnpm-lock.yaml \
+            | grep -vE '^\s+resolution: \{integrity: [^,}]+\}$' \
+            | grep -vE '^\s+resolution: \{gitHosted: true, tarball: https://codeload\.github\.com/tunacook/naninovel-script-spec/tar\.gz/[0-9a-f]{40}\}$' || true)
+          if [ -n "$bad" ]; then
+            echo "::error file=pnpm-lock.yaml::公式レジストリ以外から取得するパッケージがあります"
+            echo "$bad"
+            exit 1
+          fi
+
+      # install スクリプト（postinstall 等）を実行しない。マルウェアの主な実行経路を CI 上で動かさないため
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Inspect Dependency
         run: |

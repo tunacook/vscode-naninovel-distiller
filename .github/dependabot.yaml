@@ -5,8 +5,16 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
+    # 公開直後のバージョンは取り込まない。乗っ取りで公開されたマルウェア版は
+    # 数日以内に発見・削除されることが多いため、その期間を待ってから更新する
+    cooldown:
+      default-days: 7
 
   - package-ecosystem: npm
     directory: "/"
     schedule:
       interval: "monthly"
+    # 公開直後のバージョンは取り込まない。乗っ取りで公開されたマルウェア版は
+    # 数日以内に発見・削除されることが多いため、その期間を待ってから更新する
+    cooldown:
+      default-days: 7
