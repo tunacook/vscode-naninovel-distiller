@@ -32,7 +32,7 @@
   },
   "homepage": "https://github.com/tunacook/vscode-naninovel-distiller#readme",
   "engines": {
-    "vscode": "^1.107.0"
+    "vscode": "^1.145.0"
   },
   "packageManager": "pnpm@10.27.0",
   "main": "./dist/extension.js",
@@ -106,7 +106,7 @@
     "@types/glob": "^9.0.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
-    "@types/vscode": "^1.107.0",
+    "@types/vscode": "^1.145.0",
     "@vscode/test-electron": "^3.1.0",
     "@vscode/vsce": "^4.1.0",
     "esbuild": "^0.28.2",
